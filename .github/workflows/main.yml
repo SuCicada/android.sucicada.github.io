@@ -1,0 +1,89 @@
+# workflow的名称，会显示在github 的项目的Actions的右边列表中，如下图
+name: Build
+
+# 在满足以下条件触发这个workflow
+on:
+  push:
+    # 在指定的远程分支上，发生推送
+    branches:
+      - master
+    # 指定文件发生修改
+#    paths:
+#      - 'config.gradle'
+jobs:
+  # 多个job，如果有多个，每个以“-”开头
+  first-job:
+    # 该job 运行的系统环境，支持ubuntu 、windows、macOS
+    runs-on: ubuntu-latest
+    steps:
+      # 下面是多个step ，每个以“-”开头
+      # step：检查分支
+      - name: Checkout # 将仓库内master分支的内容下载到工作目录
+        uses: actions/checkout@v1
+      # step：设置jdk版本
+      # step 名称
+      - name: set up JDK 11
+        # 引用公共action
+        uses: actions/setup-java@v1
+        with:
+          # 设置参数
+          java-version: 11
+      # step：打包apk
+      - name: Build with Gradle
+        # 运行命令
+        run: chmod +x gradlew &&./gradlew assembleRelease
+#        run: mkdir -p ./app/build/outputs/apk/release/ && touch ./app/build/outputs/apk/release/1.apk
+
+      #step：上传apk 到action，在右上角查看
+      # 官方文档 https://help.github.com/cn/actions/automating-your-workflow-with-github-actions/persisting-workflow-data-using-artifacts#uploading-build-and-test-artifacts
+      - name: find
+        run: find . | grep apk
+
+#      - name: Upload APK
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: app
+#          path: ./app/build/outputs/apk/release/*.apk
+
+      - name: Delete older releases
+        uses: dev-drprasad/delete-older-releases@v0.2.0
+        with:
+          #          repo: <owner>/<repoName> # defaults to current repo
+          keep_latest: 3
+        #          delete_tag_pattern: beta # defaults to ""
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: latest
+          files: ./app/build/outputs/apk/release/*.apk
+
+      - name: send telegram message on success
+        if: success()
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          disable_web_page_preview: true
+          message: |
+            *[Build SUCCESS]* ${{ github.repository }}
+
+            Commit message: ${{ github.event.commits[0].message }}
+
+            [See Changes](https://github.com/${{ github.repository }}/commit/${{github.sha}})
+
+      - name: send telegram message on failure
+        if: failure()
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          disable_web_page_preview: true
+          message: |
+            *[Build FAILURE]* ${{ github.repository }}
+
+            [See Error Log](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}
