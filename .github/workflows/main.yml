@@ -76,8 +76,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           F_TIME: "${{ steps.current-time.outputs.formattedTime }}"
         with:
-          tag_name: SuCicada-${F_TIME}.apk
-          release_name: SuCicada-${F_TIME}.apk
+          tag_name: SuCicada-${{ env.F_TIME }}.apk
+          release_name: SuCicada-${{ env.F_TIME }}.apk
           draft: false
           prerelease: false
 
@@ -90,7 +90,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
           asset_path: ./app/build/outputs/apk/release/SuCicada.apk
-          asset_name: SuCicada-${F_TIME}.apk
+          asset_name: SuCicada-${{ env.F_TIME }}.apk
           asset_content_type: application/zip
 
       - name: send telegram message on success
