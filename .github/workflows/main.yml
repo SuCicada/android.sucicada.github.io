@@ -54,30 +54,43 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-#      - name: Update release
-#        uses: softprops/action-gh-release@v1
-#        with:
-#          tag_name: latest
-#          files: ./app/build/outputs/apk/r e lease/*.apk
+      - name: Get current time
+        uses: josStorer/get-current-time@v2
+        id: current-time
+        with:
+          format: YYYYMMDD-HHmm
+
+#      - name: Use current time
+#        env:
+#          TIME: "${{ steps.current-time.outputs.time }}"
+#          R_TIME: "${{ steps.current-time.outputs.readableTime }}"
+#          F_TIME: "${{ steps.current-time.outputs.formattedTime }}"
+#          YEAR: "${{ steps.current-time.outputs.year }}"
+#          DAY: "${{ steps.current-time.outputs.day }}"
+#        run: echo $TIME $R_TIME $F_TIME $YEAR $DAY
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          F_TIME: "${{ steps.current-time.outputs.formattedTime }}"
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: SuCicada-${{ F_TIME }}.apk
+          release_name: SuCicada-${{ F_TIME }}.apk
           draft: false
           prerelease: false
+
       - name: Upload Release Asset
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          F_TIME: "${{ steps.current-time.outputs.formattedTime }}"
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
           asset_path: ./app/build/outputs/apk/release/SuCicada.apk
-          asset_name: SuCicada.apk
+          asset_name: SuCicada-${{ F_TIME }}.apk
           asset_content_type: application/zip
 
       - name: send telegram message on success
