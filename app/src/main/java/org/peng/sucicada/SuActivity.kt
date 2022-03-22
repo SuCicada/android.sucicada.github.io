@@ -2,6 +2,7 @@ package org.peng.sucicada
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
@@ -130,6 +131,9 @@ class SuActivity : AppCompatActivity() {
         webView.settings.javaScriptEnabled = true;
         // 是否支持缩放
         webView.settings.setSupportZoom(true);
+
+        webView.settings.domStorageEnabled = true;
+        webView.settings.databaseEnabled = true;
 
         // Assets are hosted under http(s)://appassets.androidplatform.net/assets/... .
         // If the application's assets are in the "main/assets" folder this will read the file
